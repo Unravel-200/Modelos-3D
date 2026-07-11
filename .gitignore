@@ -1,0 +1,7 @@
+# Blender backup/autosave files (no son el guardado real)
+*.blend1
+*.blend2
+*.blend@
+
+# Configuracion local de Claude Code (no se sincroniza entre equipos)
+.claude/settings.local.json

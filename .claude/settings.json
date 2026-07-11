@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(blender --background *)",
+      "Bash(blender -b *)",
+      "Bash(python *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git status)",
+      "Bash(git diff*)",
+      "Read(*)",
+      "Write(*.py)",
+      "Write(*.json)"
+    ],
+    "ask": [
+      "Bash(git push*)",
+      "Bash(rm *)"
+    ],
+    "deny": [
+      "Bash(rm -rf *)"
+    ]
+  }
+}
