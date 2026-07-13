@@ -6,22 +6,23 @@ scene.unit_settings.system = 'METRIC'
 scene.unit_settings.scale_length = 1.0
 scene.unit_settings.length_unit = 'METERS'
 
-# Reconstruye SM_VigilanciaBlockout_Library_A con la pared trasera abierta
-# hacia la Coleccion Restringida (antes estaba cerrada, "sin salida
-# definida"). Mismo layout que el original, con Wall_Back reemplazada por
-# dos jambas + dintel.
+# Coleccion restringida de la Biblioteca Central: 10 x 14 m
+# (Proyecto_Memoria_Definitivo_3_Dias_Terror_Intenso.txt, seccion 10.1)
+# Conectada detras de Vigilancia (SM_VigilanciaBlockout_Library_A), cuya
+# pared trasera esta en Y=22.5 con hueco de 1.80 m centrado en X=0.
+# Aqui van FUR-LIB-007/008 (estanterias), PRP-LIB-006 (libros) y
+# ARC-LIB-002 (compuerta al sotano), en un paso posterior.
 
-ROOM_W = 5.0
-ROOM_D = 7.0
+ROOM_W = 10.0
+ROOM_D = 14.0
 FLOOR_THICK = 0.20
 WALL_THICK = 0.15
 WALL_H = 4.5
 
-RECEPCION_BACK_Y = 15.5
-FRONT_DOOR_W = 1.20
-BACK_DOOR_W = 1.80  # hacia coleccion restringida, mas ancha (paso de estanterias)
+VIGILANCIA_BACK_Y = 22.5
+FRONT_DOOR_W = 1.80  # coincide con el hueco de vigilancia
 
-ROOM_CENTER_Y = RECEPCION_BACK_Y + ROOM_D / 2.0
+ROOM_CENTER_Y = VIGILANCIA_BACK_Y + ROOM_D / 2.0
 
 parts = []
 
@@ -35,8 +36,8 @@ def add_box(name, size_x, size_y, size_z, loc):
     return obj
 
 half_w = ROOM_W / 2.0
-front_y = RECEPCION_BACK_Y
-back_y = RECEPCION_BACK_Y + ROOM_D
+front_y = VIGILANCIA_BACK_Y
+back_y = VIGILANCIA_BACK_Y + ROOM_D
 
 add_box("Floor", ROOM_W, ROOM_D, FLOOR_THICK, (0.0, ROOM_CENTER_Y, -FLOOR_THICK / 2.0))
 
@@ -48,14 +49,9 @@ add_box("Wall_Front_R", front_side_w, WALL_THICK, WALL_H,
 add_box("Wall_Front_Header", FRONT_DOOR_W, WALL_THICK, WALL_H - 2.6,
         (0.0, front_y + WALL_THICK / 2.0, WALL_H - (WALL_H - 2.6) / 2.0))
 
-# pared trasera, ahora con hueco hacia coleccion restringida
-back_side_w = (ROOM_W - BACK_DOOR_W) / 2.0
-add_box("Wall_Back_L", back_side_w, WALL_THICK, WALL_H,
-        (-half_w + back_side_w / 2.0, back_y - WALL_THICK / 2.0, WALL_H / 2.0))
-add_box("Wall_Back_R", back_side_w, WALL_THICK, WALL_H,
-        (half_w - back_side_w / 2.0, back_y - WALL_THICK / 2.0, WALL_H / 2.0))
-add_box("Wall_Back_Header", BACK_DOOR_W, WALL_THICK, WALL_H - 2.6,
-        (0.0, back_y - WALL_THICK / 2.0, WALL_H - (WALL_H - 2.6) / 2.0))
+# pared trasera cerrada por ahora: la salida real de esta sala es la
+# compuerta oculta en el piso (ARC-LIB-002 / FUR-LIB-008), no una puerta.
+add_box("Wall_Back", ROOM_W, WALL_THICK, WALL_H, (0.0, back_y - WALL_THICK / 2.0, WALL_H / 2.0))
 
 add_box("Wall_Left", WALL_THICK, ROOM_D, WALL_H,
         (-half_w + WALL_THICK / 2.0, ROOM_CENTER_Y, WALL_H / 2.0))
@@ -69,8 +65,8 @@ bpy.context.view_layer.objects.active = parts[0]
 bpy.ops.object.join()
 
 mesh_obj = bpy.context.active_object
-mesh_obj.name = "SM_VigilanciaBlockout_Library_A"
-mesh_obj.data.name = "SM_VigilanciaBlockout_Library_A_Mesh"
+mesh_obj.name = "SM_ColeccionRestringidaBlockout_Library_A"
+mesh_obj.data.name = "SM_ColeccionRestringidaBlockout_Library_A_Mesh"
 
 bpy.ops.object.mode_set(mode='EDIT')
 bpy.ops.mesh.select_all(action='SELECT')
@@ -78,14 +74,14 @@ bpy.ops.mesh.normals_make_consistent(inside=False)
 bpy.ops.uv.smart_project(angle_limit=66.0, island_margin=0.02)
 bpy.ops.object.mode_set(mode='OBJECT')
 
-mat_floor = bpy.data.materials.new(name="M_Floor_VigilanciaBlockout")
+mat_floor = bpy.data.materials.new(name="M_Floor_ColeccionRestringidaBlockout")
 mat_floor.use_nodes = True
 bsdf_f = mat_floor.node_tree.nodes.get("Principled BSDF")
 if bsdf_f:
     bsdf_f.inputs["Base Color"].default_value = (0.55, 0.53, 0.50, 1.0)
     bsdf_f.inputs["Roughness"].default_value = 0.6
 
-mat_wall = bpy.data.materials.new(name="M_Wall_VigilanciaBlockout")
+mat_wall = bpy.data.materials.new(name="M_Wall_ColeccionRestringidaBlockout")
 mat_wall.use_nodes = True
 bsdf_w = mat_wall.node_tree.nodes.get("Principled BSDF")
 if bsdf_w:
@@ -106,15 +102,15 @@ for poly in mesh.polygons:
 
 bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0.0, ROOM_CENTER_Y, -FLOOR_THICK / 2.0))
 col_floor = bpy.context.active_object
-col_floor.name = "UCX_SM_VigilanciaBlockout_Library_A_00"
+col_floor.name = "UCX_SM_ColeccionRestringidaBlockout_Library_A_00"
 col_floor.scale = (ROOM_W, ROOM_D, FLOOR_THICK)
 bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
 col_floor.display_type = 'WIRE'
 col_floor.hide_render = True
 
 bpy.ops.wm.save_as_mainfile(
-    filepath="C:\\Users\\jeffa\\Desktop\\Proyecto\\Modelos-3D\\Biblioteca\\SM_VigilanciaBlockout_Library_A.blend")
+    filepath="C:\\Users\\jeffa\\Desktop\\Proyecto\\Modelos-3D\\Biblioteca\\SM_ColeccionRestringidaBlockout_Library_A.blend")
 
 print("RESULT_NAME:", mesh_obj.name)
 print("RESULT_DIMS: X={:.3f} Y={:.3f} Z={:.3f}".format(*mesh_obj.dimensions))
-print("RESULT_BACK_Y:", back_y)
+print("RESULT_CENTER_Y:", ROOM_CENTER_Y)
