@@ -8,14 +8,20 @@ scene.unit_settings.length_unit = 'METERS'
 
 # Vestibulo de la Biblioteca Central: 12 x 15 m
 # (Proyecto_Memoria_Definitivo_3_Dias_Terror_Intenso.txt, seccion 10.1)
+# Version 2: se agrega el hueco de la salida lateral en la pared derecha,
+# para conectar con ARC-LIB-004 (puerta de servicio). Cierra el
+# inventario de arquitectura de la Fase 1.
+
 ROOM_W = 12.0
 ROOM_D = 15.0
 FLOOR_THICK = 0.20
-WALL_THICK = 0.25   # pared exterior/estructural (Guia, seccion 4)
-WALL_H = 4.5        # altura de piso academico aproximada (18-20 m / 4 pisos)
+WALL_THICK = 0.25
+WALL_H = 4.5
 
-MAIN_DOOR_W = 2.20   # coincide con ARC-LIB-001 (puerta principal doble)
-INNER_DOOR_W = 1.80  # abertura hacia recepcion, mas angosta
+MAIN_DOOR_W = 2.20
+INNER_DOOR_W = 1.80
+SIDE_DOOR_W = 1.10       # coincide con ARC-LIB-004 (puerta de servicio)
+SIDE_DOOR_Y = -4.0        # posicion a lo largo de la pared derecha (cerca del frente)
 
 parts = []
 
@@ -31,20 +37,16 @@ def add_box(name, size_x, size_y, size_z, loc):
 half_w = ROOM_W / 2.0
 half_d = ROOM_D / 2.0
 
-# piso
 add_box("Floor", ROOM_W, ROOM_D, FLOOR_THICK, (0.0, 0.0, -FLOOR_THICK / 2.0))
 
-# pared frontal (entrada principal, en -Y), con hueco central de MAIN_DOOR_W
 front_side_w = (ROOM_W - MAIN_DOOR_W) / 2.0
 add_box("Wall_Front_L", front_side_w, WALL_THICK, WALL_H,
         (-half_w + front_side_w / 2.0, -half_d + WALL_THICK / 2.0, WALL_H / 2.0))
 add_box("Wall_Front_R", front_side_w, WALL_THICK, WALL_H,
         (half_w - front_side_w / 2.0, -half_d + WALL_THICK / 2.0, WALL_H / 2.0))
-# dintel sobre la puerta principal
 add_box("Wall_Front_Header", MAIN_DOOR_W, WALL_THICK, WALL_H - 2.6,
         (0.0, -half_d + WALL_THICK / 2.0, WALL_H - (WALL_H - 2.6) / 2.0))
 
-# pared trasera (hacia recepcion, en +Y), con hueco central de INNER_DOOR_W
 back_side_w = (ROOM_W - INNER_DOOR_W) / 2.0
 add_box("Wall_Back_L", back_side_w, WALL_THICK, WALL_H,
         (-half_w + back_side_w / 2.0, half_d - WALL_THICK / 2.0, WALL_H / 2.0))
@@ -53,9 +55,21 @@ add_box("Wall_Back_R", back_side_w, WALL_THICK, WALL_H,
 add_box("Wall_Back_Header", INNER_DOOR_W, WALL_THICK, WALL_H - 2.6,
         (0.0, half_d - WALL_THICK / 2.0, WALL_H - (WALL_H - 2.6) / 2.0))
 
-# paredes laterales completas (sin abertura, se conectaran a otras salas despues)
+# pared izquierda: completa, sin abertura
 add_box("Wall_Left", WALL_THICK, ROOM_D, WALL_H, (-half_w + WALL_THICK / 2.0, 0.0, WALL_H / 2.0))
-add_box("Wall_Right", WALL_THICK, ROOM_D, WALL_H, (half_w - WALL_THICK / 2.0, 0.0, WALL_H / 2.0))
+
+# pared derecha: con hueco para la salida lateral (ARC-LIB-004)
+door_y0 = SIDE_DOOR_Y - SIDE_DOOR_W / 2.0
+door_y1 = SIDE_DOOR_Y + SIDE_DOOR_W / 2.0
+seg_front_len = door_y0 - (-half_d)   # tramo entre la esquina frontal y la puerta
+seg_back_len = half_d - door_y1        # tramo entre la puerta y la esquina trasera
+
+add_box("Wall_Right_Front", WALL_THICK, seg_front_len, WALL_H,
+        (half_w - WALL_THICK / 2.0, -half_d + seg_front_len / 2.0, WALL_H / 2.0))
+add_box("Wall_Right_Back", WALL_THICK, seg_back_len, WALL_H,
+        (half_w - WALL_THICK / 2.0, half_d - seg_back_len / 2.0, WALL_H / 2.0))
+add_box("Wall_Right_Header", WALL_THICK, SIDE_DOOR_W, WALL_H - 2.4,
+        (half_w - WALL_THICK / 2.0, SIDE_DOOR_Y, WALL_H - (WALL_H - 2.4) / 2.0))
 
 bpy.ops.object.select_all(action='DESELECT')
 for p in parts:
@@ -103,7 +117,6 @@ for poly in mesh.polygons:
     if cz > 0.0:
         poly.material_index = wall_idx
 
-# colision: piso + 4 paredes exteriores como cajas simples
 bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0.0, 0.0, -FLOOR_THICK / 2.0))
 col_floor = bpy.context.active_object
 col_floor.name = "UCX_SM_VestibuloBlockout_Library_A_00"
@@ -117,3 +130,4 @@ bpy.ops.wm.save_as_mainfile(
 
 print("RESULT_NAME:", mesh_obj.name)
 print("RESULT_DIMS: X={:.3f} Y={:.3f} Z={:.3f}".format(*mesh_obj.dimensions))
+print("RESULT_SIDE_DOOR_Y:", SIDE_DOOR_Y)
