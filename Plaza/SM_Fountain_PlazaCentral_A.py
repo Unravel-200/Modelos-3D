@@ -9,14 +9,22 @@ scene.unit_settings.length_unit = 'METERS'
 # Fuente central de la Plaza: 20 m de diametro
 # (Proyecto_Memoria_Definitivo_3_Dias_Terror_Intenso.txt, seccion 8.1)
 # Profundidad visual: 0.40-0.60 m.
+#
+# VERSION FINAL DE BLOCKOUT (Fase 1): solo borde + piso + agua, sin
+# nada en el centro. El usuario probo varias ideas de escultura central
+# (angeles, figura con libro, manos con antorcha, columnas rotas, version
+# de 3 niveles con corona) y ninguna convencio como blockout generado por
+# script. Se decidio dejar el centro vacio por ahora.
+#
+# PENDIENTE: agregar detalle/escultura a la fuente en la fase de arte
+# final (v0.18.0). Ver Checklist_Versiones, version 0.18.0.
 
 OUTER_RADIUS = 10.0
 RIM_THICK = 0.4
 INNER_RADIUS = OUTER_RADIUS - RIM_THICK
 RIM_HEIGHT = 0.5
-WATER_DEPTH = 0.5  # dentro del rango 0.40-0.60 m
+WATER_DEPTH = 0.5
 
-# --- borde/muro de la fuente (anillo, via boolean) ---
 bpy.ops.mesh.primitive_cylinder_add(radius=OUTER_RADIUS, depth=RIM_HEIGHT,
                                      location=(0.0, 0.0, RIM_HEIGHT / 2.0), vertices=64)
 rim_outer = bpy.context.active_object
@@ -37,24 +45,11 @@ bpy.ops.object.select_all(action='DESELECT')
 rim_cutter.select_set(True)
 bpy.ops.object.delete()
 
-rim_outer.name = "SM_Fountain_PlazaCentral_A"
-rim_outer.data.name = "SM_Fountain_PlazaCentral_A_Mesh"
-
-# --- superficie de agua (disco interior, un poco mas abajo que el borde) ---
-water_z = RIM_HEIGHT - WATER_DEPTH
-bpy.ops.mesh.primitive_cylinder_add(radius=INNER_RADIUS, depth=0.05,
-                                     location=(0.0, 0.0, water_z), vertices=64)
-water_obj = bpy.context.active_object
-water_obj.name = "WaterSurface"
-
-# --- piso interior de la fuente (fondo del vaso) ---
 bpy.ops.mesh.primitive_cylinder_add(radius=INNER_RADIUS, depth=0.1,
                                      location=(0.0, 0.0, 0.05), vertices=64)
 basin_floor = bpy.context.active_object
 basin_floor.name = "BasinFloor"
 
-# --- union del borde + piso interior (la superficie de agua queda separada,
-# con material distinto para que se note el efecto de agua) ---
 bpy.ops.object.select_all(action='DESELECT')
 rim_outer.select_set(True)
 basin_floor.select_set(True)
@@ -84,6 +79,12 @@ if bsdf_s:
 mesh_obj.data.materials.clear()
 mesh_obj.data.materials.append(mat_stone)
 
+water_z = RIM_HEIGHT - WATER_DEPTH
+bpy.ops.mesh.primitive_cylinder_add(radius=INNER_RADIUS, depth=0.05,
+                                     location=(0.0, 0.0, water_z), vertices=64)
+water_obj = bpy.context.active_object
+water_obj.name = "WaterSurface"
+
 mat_water = bpy.data.materials.new(name="M_Water_FountainSurface")
 mat_water.use_nodes = True
 bsdf_w = mat_water.node_tree.nodes.get("Principled BSDF")
@@ -104,7 +105,6 @@ final_obj = bpy.context.active_object
 final_obj.name = "SM_Fountain_PlazaCentral_A"
 final_obj.data.name = "SM_Fountain_PlazaCentral_A_Mesh"
 
-# colision: cilindro solido exterior (el jugador no puede caminar sobre el borde ancho facilmente, se bloquea todo el volumen)
 bpy.ops.mesh.primitive_cylinder_add(radius=OUTER_RADIUS, depth=RIM_HEIGHT,
                                      location=(0.0, 0.0, RIM_HEIGHT / 2.0), vertices=24)
 collision_obj = bpy.context.active_object
